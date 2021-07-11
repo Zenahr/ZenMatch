@@ -1,5 +1,4 @@
 from app import db, Server
-db.create_all()
 
 example_server1 = Server(
 name           = 'example server 1',
@@ -10,8 +9,14 @@ public_ip      = '153.97.25.107',
 description    = ''
 )
 
-db.session.add(example_server1)
-db.session.commit()
+# db.session.add(example_server1)
+# db.session.commit()
+
+def reset_serverlist():
+    db.session.query(Server).delete()
+    db.session.commit()
+
+db.create_all()
 
 # def get_servers_count():
 #     count = len(servers)
