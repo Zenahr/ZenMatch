@@ -1,38 +1,10 @@
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request, redirect, url_for
+from model import servers, remove_server_by_id
 
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite://"
 
-class Server():
-    def __init__(self, id=1, name='my server', active_players=0, max_players=4, region='EU', public_ip='153.97.25.107', description=None): # TODO: remove defaults.
-        self.id             = id
-        self.name           = name
-        self.active_players = active_players
-        self.max_players    = max_players
-        self.region         = region
-        self.public_ip      = public_ip
-        self.description    = description
-        # self.is_full
-
-    def serialize(self):
-        return dict(
-        id             = self.id,
-        name           = self.name,
-        active_players = self.active_players,
-        max_players    = self.max_players,
-        region         = self.region,
-        public_ip      = self.public_ip,
-        description    = self.description
-        )
-
-example_server1 = Server(1, 'example server 1', 2, 8, 'EU', '153.97.25.107').serialize()
-example_server2 = Server(2, 'example server 2', 4, 8, 'EU', '153.97.25.107').serialize()
-example_server3 = Server(3, 'example server 3', 8, 8, 'EU', '153.97.25.107').serialize()
-
-servers = [
-    example_server1,
-    example_server2,
-    example_server3,
-]
 
 @app.route('/list', methods=['GET'])
 def list_all_servers():
@@ -42,11 +14,22 @@ def list_all_servers():
 
 @app.route('/add', methods=['GET'])
 def add_new_server():
-    new_server_id = servers[-1]['id']+1
-    new_server = Server(new_server_id).serialize()
+    new_server_id  = servers[-1]['id']+1
+    name           = request.args.get('name')
+    active_players = request.args.get('active_players')
+    max_players    = request.args.get('max_players')
+    region         = request.args.get('region')
+    public_ip      = request.args.get('public_ip')
+    description    = request.args.get('description')
+    new_server     = Server(new_server_id, name, active_players, max_players, region, public_ip, description).serialize()
     servers.append(new_server)
     return jsonify({'message': 'Server has been added to the list.'})
 
+@app.route('/remove', methods=['DELETE']) # TODO: make sure to use UUID to ensure only the owner can remove servers.
+def remove_server():
+    remove_server_by_id(request.args.get('id'))
+    return redirect(url_for('list_all_servers'))
+        
 
 if __name__ == '__main__':
     app.run()
