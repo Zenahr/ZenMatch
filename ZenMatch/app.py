@@ -1,8 +1,15 @@
-from flask import Flask, Response, jsonify, request, redirect, url_for
+from flask import Flask, Response, jsonify, request, redirect, url_for, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass # https://stackoverflow.com/a/57732785/12675239
+import apis
 
 app = Flask(__name__)
+
+# Modules/Blueprints
+dev = Blueprint('dev', __name__)
+
+app.register_blueprint(dev)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.config['JSON_SORT_KEYS']                 = False
 app.config['DEBUG']                          = True
@@ -62,9 +69,10 @@ def remove_server():
     db.session.commit()
     return redirect(url_for('list_all_servers'))
 
-@app.route('/public_ip')
+
+@dev.route('/public_ip')
 def get_public_ip():
-    return 'text'
+    return apis.get_public_ip()
 
 if __name__ == '__main__':
     app.run()
